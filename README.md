@@ -22,7 +22,7 @@ Before running the script, make sure you have the following:
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/Singh-Sg/salesforce_postgres_synchronization.git
+    git clone https://github.com/uddeshiyayuneesh/salesforce_postgres_sync.git
     ```
 
 2. **Install the required Python packages:**
