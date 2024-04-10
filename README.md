@@ -33,6 +33,21 @@ Before running the script, make sure you have the following:
 
 3. **Set up configuration files for Salesforce (`config.py`) and PostgreSQL (`config.py`) connections.**
 
+## Configurations Table Setup
+To synchronize data between Salesforce and PostgreSQL, you need to define table configurations in the `table_conf` table in your PostgreSQL database. Follow these steps to set up the table 
+1. **Create table_conf Table: If not already created, create a table named table_conf in your PostgreSQL database. You can use the following SQL command to create the table:**
+     ```bash
+     CREATE TABLE IF NOT EXISTS table_conf (
+        id SERIAL PRIMARY KEY,
+        table_name VARCHAR(255) NOT NULL,
+        query TEXT NOT NULL
+    );
+     ```
+2. **Insert Table Configurations: Insert entries into the table_conf table for each table you want to synchronize between Salesforce and PostgreSQL. Each entry should specify the Salesforce object's table name and a SOQL query to fetch data from Salesforce. For example:**
+    ```bash
+    INSERT INTO table_conf (table_name, query) VALUES ('Account', 'SELECT Id, Name FROM Account');
+    ```
+
 ## Usage
 
 1. **Run the script:**

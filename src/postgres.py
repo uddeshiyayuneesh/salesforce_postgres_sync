@@ -17,8 +17,8 @@ class PostgreSQL:
 
     def fetch_table_queries(self):
         try:
-            self.cursor.execute("SELECT tablename, query FROM configurations;")
-            self.logger.info("fetched data from conf table")
+            self.cursor.execute("SELECT table_name, query FROM table_conf;")
+            self.logger.info("fetched data from configurations table")
             return self.cursor.fetchall()
         except Exception as e:
             self.logger.error(f"Error fetching table queries from PostgreSQL: {str(e)}")
