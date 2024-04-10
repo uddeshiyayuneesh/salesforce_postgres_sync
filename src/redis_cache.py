@@ -3,12 +3,13 @@ import redis
 import logging
 from config.config import Config
 
+
 class RedisCache:
     def __init__(self):
         self.connection = redis.Redis(
             host=Config.REDIS_HOST,
             port=Config.REDIS_PORT,
-            password=Config.REDIS_PASSWORD
+            password=Config.REDIS_PASSWORD,
         )
         self.logger = logging.getLogger(__name__)
 

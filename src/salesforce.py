@@ -2,6 +2,7 @@ import logging
 from config.config import Config
 from simple_salesforce import Salesforce, SalesforceLogin
 
+
 class SalesforceAPI:
     def __init__(self):
         """
@@ -10,7 +11,6 @@ class SalesforceAPI:
         self.sf = self.get_salesforce_instance()  # Initialize Salesforce instance
         self.logger = logging.getLogger(__name__)
 
-
     def get_salesforce_instance(self):
         """
         Method to authenticate and initialize Salesforce instance.
@@ -18,14 +18,17 @@ class SalesforceAPI:
             Salesforce instance.
         """
         try:
-            session_id, instance = SalesforceLogin(username=Config.SALESFORCE_USERNAME, 
-                                                    password=Config.SALESFORCE_PASSWORD, 
-                                                    security_token=Config.SALESFORCE_SECURITY_TOKEN)
-            print(f"INFO: initiated Salesforce instance with {Config.SALESFORCE_USERNAME}")
+            session_id, instance = SalesforceLogin(
+                username=Config.SALESFORCE_USERNAME,
+                password=Config.SALESFORCE_PASSWORD,
+                security_token=Config.SALESFORCE_SECURITY_TOKEN,
+            )
+            print(
+                f"INFO: initiated Salesforce instance with {Config.SALESFORCE_USERNAME}"
+            )
             return Salesforce(instance=instance, session_id=session_id)
         except Exception as e:
             print(f"Error while initiating Salesforce instance: {str(e)}")
-
 
     def fetch_data(self, query):
         """
@@ -40,8 +43,7 @@ class SalesforceAPI:
             self.logger.info("Fetched data from Salesforce")
             return query_records
         except Exception as e:
-            self.logger.error(f"Error while fetching data from Salesforce: {str(e)}")            
-
+            self.logger.error(f"Error while fetching data from Salesforce: {str(e)}")
 
     def delete_records(self, record_ids, table_name):
         """
@@ -53,14 +55,13 @@ class SalesforceAPI:
         try:
             # Delete associated records
             self.delete_associated_records(record_ids)
-            
+
             # Delete records from specified Salesforce object
             for id in record_ids:
                 self.sf.__getattr__(table_name).delete(id)
             self.logger.info("Deleted data from Salesforce")
         except Exception as e:
             self.logger.error(f"Error while deleting data from Salesforce: {str(e)}")
-
 
     def delete_associated_records(self, record_ids):
         """
@@ -71,20 +72,22 @@ class SalesforceAPI:
         try:
             # Query for associated entitlements, cases, and closed-won opportunities
             query = (
-                "SELECT Id, AccountId FROM Entitlement WHERE AccountId IN ('" + "','".join(record_ids) + "') "
+                "SELECT Id, AccountId FROM Entitlement WHERE AccountId IN ('"
+                + "','".join(record_ids)
+                + "') "
                 "OR AccountId IN ('" + "','".join(record_ids) + "') "
                 "OR AccountId IN ('" + "','".join(record_ids) + "') "
             )
 
-            entitlements_cases_opportunities = self.sf.query_all(query)['records']
+            entitlements_cases_opportunities = self.sf.query_all(query)["records"]
 
             # Group associated records by AccountId
             associated_records_map = {}
             for record in entitlements_cases_opportunities:
-                account_id = record['AccountId']
+                account_id = record["AccountId"]
                 if account_id not in associated_records_map:
                     associated_records_map[account_id] = []
-                associated_records_map[account_id].append(record['Id'])
+                associated_records_map[account_id].append(record["Id"])
 
             # Delete associated entitlements, cases, and closed-won opportunities
             for account_id, records in associated_records_map.items():
