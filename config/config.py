@@ -13,8 +13,8 @@ class Config:
     POSTGRES_USER = "postgres"
     POSTGRES_PASSWORD = "root"
 
-    REDIS_HOST = "your_redis_host"
-    REDIS_PORT = "your_redis_port"
+    REDIS_HOST = "localhost"
+    REDIS_PORT = "6379"
     REDIS_PASSWORD = "your_redis_password"
 
     QUEUE_NAME = "salesforce-postgres-sync"

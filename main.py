@@ -1,7 +1,10 @@
 import logging
+import threading
+import concurrent.futures
 from config.config import Config
 from src.salesforce import SalesforceAPI
 from redis import Redis
+from src.worker import start_rq_worker
 from src.wrapper import (
     setup_postgres,
     fetch_tables_wrapper,
@@ -58,4 +61,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        executor.submit(start_rq_worker)
+        main()
