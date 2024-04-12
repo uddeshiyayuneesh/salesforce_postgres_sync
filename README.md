@@ -22,7 +22,7 @@ Before running the script, make sure you have the following:
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/uddeshiyayuneesh/salesforce_postgres_sync.git
+    git clone https://github.com/Singh-Sg/salesforce_postgres_synchronization.git
     ```
 
 2. **Install the required Python packages:**
@@ -30,6 +30,32 @@ Before running the script, make sure you have the following:
     ```bash
     pip install -r requirements.txt
     ```
+
+3. **Install Redis for queue the jobs**
+    - **Windows**: 
+      - Download Redis from the [official website](https://redis.io/download).
+      - Extract the downloaded file and navigate to the extracted directory.
+      - Run the `redis-server.exe` to start the Redis server.
+
+    - **MacOS**:
+      - You can install Redis via Homebrew using the following command:
+        ```bash
+        brew install redis
+        ```
+      - Start the Redis server using the following command:
+        ```bash
+        redis-server
+        ```
+    - **Linux**:
+      - Redis is available in most Linux distribution repositories. You can install it using the package manager specific to your distribution. For example, on Debian/Ubuntu, you can use:
+        ```bash
+        sudo apt-get update
+        sudo apt-get install redis-server
+        ```
+      - Start the Redis server using the following command:
+        ```bash
+        sudo service redis-server start
+        ```
 
 3. **Set up configuration files for Salesforce (`config.py`) and PostgreSQL (`config.py`) connections.**
 
@@ -83,4 +109,5 @@ REDIS_PORT = 'your_redis_port'
 REDIS_PASSWORD = 'your_redis_password'
 
 # set log info
+LOG_FILE = 'salesforce_postgres_sync.log'
 LOG_LEVEL = logging.INFO
