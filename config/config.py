@@ -17,4 +17,5 @@ class Config:
     REDIS_PORT = "your_redis_port"
     REDIS_PASSWORD = "your_redis_password"
 
+    QUEUE_NAME = "salesforce-postgres-sync"
     LOG_LEVEL = logging.INFO
