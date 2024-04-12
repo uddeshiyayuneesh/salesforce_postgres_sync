@@ -1,9 +1,17 @@
-# src/main.py
 import logging
 from config.config import Config
 from src.salesforce import SalesforceAPI
-from src.postgres import PostgreSQL
-from src.redis_cache import RedisCache
+from redis import Redis
+from src.wrapper import (
+    setup_postgres,
+    fetch_tables_wrapper,
+    create_table_wrapper,
+    insert_data_wrapper,
+    ids_wrapper,
+    close_postgres
+) 
+from rq import Queue
+from src.utils import wait_for_job
 
 
 def setup_logging():
@@ -15,34 +23,38 @@ def setup_logging():
 
 def main():
     setup_logging()
+    setup_postgres()
     salesforce = SalesforceAPI()
-    postgres = PostgreSQL()
-    redis_cache = RedisCache()
+
+    conn = Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT)
+    q = Queue(name=Config.QUEUE_NAME, connection=conn)
 
     # fetching data of conf table from postgres to query data from salesforce
-    table_queries = postgres.fetch_table_queries()
+    table_queries_job = q.enqueue(fetch_tables_wrapper)
+    # import pdb;pdb.set_trace()
+    table_queries = wait_for_job(table_queries_job)
+
 
     for table_name, query in table_queries:
-        # fetching data from salesforce using it's instance
-        query_records = salesforce.fetch_data(query)
+        # fetching data from salesforce using its instance
+        query_records_job = q.enqueue(salesforce.fetch_data, query)
+        query_records = wait_for_job(query_records_job)
 
-        # creating table in postgres data in order to save it saperatly
-        postgres.create_table(table_name)
+        # creating table in postgres data in order to save it saperately
+        create_table_job = q.enqueue(create_table_wrapper, table_name)
 
         # inserting data in respected table
-        postgres.insert_data(table_name, query_records["records"])
+        insert_data_job = q.enqueue(insert_data_wrapper, table_name, query_records["records"])
 
         # gettign list of ids from saved data on postgres
-        ids = postgres.get_ids_from_db(table_name)
-
-        # Cache fetched records
-        redis_cache.set_cache(f"{table_name}_records", str(query_records["records"]))
+        get_ids_job = q.enqueue(ids_wrapper, table_name)
+        ids = wait_for_job(get_ids_job)
 
         # deleting data from salesforce
-        salesforce.delete_records(ids, table_name)
+        q.enqueue(salesforce.delete_records, ids, table_name)
 
     # closing postgres connection
-    postgres.close_connection()
+    close_postgres()
 
 
 if __name__ == "__main__":
