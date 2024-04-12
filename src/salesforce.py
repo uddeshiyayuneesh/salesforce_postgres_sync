@@ -53,10 +53,8 @@ class SalesforceAPI:
             table_name (str): Name of the Salesforce object from which records are to be deleted.
         """
         try:
-            # Delete associated records
             self.delete_associated_records(record_ids)
 
-            # Delete records from specified Salesforce object
             for id in record_ids:
                 self.sf.__getattr__(table_name).delete(id)
             self.logger.info("Deleted data from Salesforce")
@@ -70,7 +68,6 @@ class SalesforceAPI:
             record_ids (list): List of record IDs.
         """
         try:
-            # Query for associated entitlements, cases, and closed-won opportunities
             query = (
                 "SELECT Id, AccountId FROM Entitlement WHERE AccountId IN ('"
                 + "','".join(record_ids)
@@ -81,7 +78,6 @@ class SalesforceAPI:
 
             entitlements_cases_opportunities = self.sf.query_all(query)["records"]
 
-            # Group associated records by AccountId
             associated_records_map = {}
             for record in entitlements_cases_opportunities:
                 account_id = record["AccountId"]
@@ -89,7 +85,6 @@ class SalesforceAPI:
                     associated_records_map[account_id] = []
                 associated_records_map[account_id].append(record["Id"])
 
-            # Delete associated entitlements, cases, and closed-won opportunities
             for account_id, records in associated_records_map.items():
                 self.delete_associated_entitlements(records)
                 self.delete_associated_cases(records)
