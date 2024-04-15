@@ -34,7 +34,6 @@ def main():
 
     # fetching data of conf table from postgres to query data from salesforce
     table_queries_job = q.enqueue(fetch_tables_wrapper)
-    # import pdb;pdb.set_trace()
     table_queries = wait_for_job(table_queries_job)
 
 

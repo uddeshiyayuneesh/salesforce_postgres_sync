@@ -53,7 +53,7 @@ class SalesforceAPI:
             table_name (str): Name of the Salesforce object from which records are to be deleted.
         """
         try:
-            self.delete_associated_records(record_ids)
+            self.delete_associated_records(record_ids, ["Entitlement", "Case", "Opportunity"])
 
             for id in record_ids:
                 self.sf.__getattr__(table_name).delete(id)
@@ -61,35 +61,50 @@ class SalesforceAPI:
         except Exception as e:
             self.logger.error(f"Error while deleting data from Salesforce: {str(e)}")
 
-    def delete_associated_records(self, record_ids):
+    def delete_associated_records(self, record_ids, object_names):
         """
-        Method to delete associated records (entitlements, cases, and opportunities) of given records.
+        Method to delete associated records of given objects.
         Args:
             record_ids (list): List of record IDs.
+            object_names (list): List of object names whose associated records should be deleted.
         """
         try:
-            query = (
-                "SELECT Id, AccountId FROM Entitlement WHERE AccountId IN ('"
-                + "','".join(record_ids)
-                + "') "
-                "OR AccountId IN ('" + "','".join(record_ids) + "') "
-                "OR AccountId IN ('" + "','".join(record_ids) + "') "
-            )
-
-            entitlements_cases_opportunities = self.sf.query_all(query)["records"]
-
-            associated_records_map = {}
-            for record in entitlements_cases_opportunities:
-                account_id = record["AccountId"]
-                if account_id not in associated_records_map:
-                    associated_records_map[account_id] = []
-                associated_records_map[account_id].append(record["Id"])
-
-            for account_id, records in associated_records_map.items():
-                self.delete_associated_entitlements(records)
-                self.delete_associated_cases(records)
-                self.delete_associated_opportunities(records)
+            for object_name in object_names:
+                related_records = self.get_related_records(record_ids, object_name)
+                self.delete_related_records(related_records, object_name)
 
             self.logger.info("Deleted associated records")
         except Exception as e:
             self.logger.error(f"Error while deleting associated records: {str(e)}")
+
+    def get_related_records(self, record_ids, object_name):
+        """
+        Method to get related records of given objects.
+        Args:
+            record_ids (list): List of record IDs.
+            object_name (str): Name of the object whose related records should be fetched.
+        Returns:
+            List of related records.
+        """
+        try:
+            query = (
+                f"SELECT Id FROM {object_name} WHERE AccountId IN ('{','.join(record_ids)}')"
+            )
+            return self.sf.query_all(query)["records"]
+        except Exception as e:
+            self.logger.error(f"Error while fetching related records of {object_name}: {str(e)}")
+            return []
+
+    def delete_related_records(self, related_records, object_name):
+        """
+        Method to delete related records of given object.
+        Args:
+            related_records (list): List of related records.
+            object_name (str): Name of the object whose related records should be deleted.
+        """
+        try:
+            for record in related_records:
+                self.sf.__getattr__(object_name).delete(record["Id"])
+            self.logger.info(f"Deleted associated {object_name} records")
+        except Exception as e:
+            self.logger.error(f"Error while deleting associated {object_name} records: {str(e)}")
